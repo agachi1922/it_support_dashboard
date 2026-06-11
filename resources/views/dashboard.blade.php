@@ -96,7 +96,6 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 18px;
-            margin-bottom: 28px;
         }
 
         .card {
@@ -133,85 +132,8 @@
             color: #16a34a;
         }
 
-        .panel {
-            overflow: hidden;
-            background: #ffffff;
-            border-radius: 14px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-        }
-
-        .panel-header {
-            padding: 20px 22px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .panel-header h3 {
-            margin-bottom: 5px;
-        }
-
-        .panel-header p {
-            color: #6b7280;
-            font-size: 13px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            min-width: 850px;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 15px 18px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-        }
-
-        th {
-            background: #f9fafb;
-            color: #4b5563;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        td {
-            font-size: 14px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-        }
-
-        .badge-baru {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-diproses {
-            background: #ffedd5;
-            color: #9a3412;
-        }
-
-        .badge-selesai {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .empty {
-            padding: 45px 20px;
-            color: #6b7280;
-            text-align: center;
-        }
-
         footer {
-            margin-top: 24px;
+            margin-top: 28px;
             color: #6b7280;
             font-size: 13px;
             text-align: center;
@@ -252,11 +174,16 @@
     <div class="layout">
         <aside class="sidebar">
             <h1>IT SUPPORT</h1>
+
             <p>Dashboard Divisi IT</p>
 
             <nav class="menu">
-                <a href="/dashboard" class="active">Dashboard</a>
-                <a href="/tickets">Data Tiket</a>
+                <a
+                    href="/dashboard"
+                    class="active"
+                >
+                    Dashboard
+                </a>
             </nav>
         </aside>
 
@@ -264,7 +191,10 @@
             <header class="header">
                 <div>
                     <h2>Dashboard Divisi IT</h2>
-                    <p>Monitoring tiket dan kendala pengguna</p>
+
+                    <p>
+                        Monitoring aktivitas dan layanan Divisi IT
+                    </p>
                 </div>
 
                 <div class="server-status">
@@ -274,14 +204,16 @@
 
             <section class="cards">
                 <article class="card">
-                    <span>Total Tiket</span>
+                    <span>Total Aktivitas</span>
+
                     <strong class="blue">
                         {{ $statistics['total'] }}
                     </strong>
                 </article>
 
                 <article class="card">
-                    <span>Tiket Baru</span>
+                    <span>Aktivitas Baru</span>
+
                     <strong class="yellow">
                         {{ $statistics['new'] }}
                     </strong>
@@ -289,72 +221,19 @@
 
                 <article class="card">
                     <span>Sedang Diproses</span>
+
                     <strong class="orange">
                         {{ $statistics['process'] }}
                     </strong>
                 </article>
 
                 <article class="card">
-                    <span>Tiket Selesai</span>
+                    <span>Aktivitas Selesai</span>
+
                     <strong class="green">
                         {{ $statistics['completed'] }}
                     </strong>
                 </article>
-            </section>
-
-            <section class="panel">
-                <div class="panel-header">
-                    <h3>Daftar Tiket Terbaru</h3>
-                    <p>Data tiket dari database Laravel</p>
-                </div>
-
-                <div class="table-wrapper">
-                    @if ($tickets->isEmpty())
-                        <div class="empty">
-                            Belum ada data tiket.
-                        </div>
-                    @else
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>No.</th>
-                                    <th>Kode</th>
-                                    <th>Pelapor</th>
-                                    <th>Divisi</th>
-                                    <th>Kendala</th>
-                                    <th>Prioritas</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                @foreach ($tickets as $ticket)
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $ticket->ticket_code }}</td>
-                                        <td>{{ $ticket->reporter_name }}</td>
-                                        <td>{{ $ticket->division }}</td>
-                                        <td>{{ $ticket->issue }}</td>
-                                        <td>{{ $ticket->priority }}</td>
-                                        <td>
-                                            @php
-                                                $statusClass = match ($ticket->status) {
-                                                    'Baru' => 'badge-baru',
-                                                    'Diproses' => 'badge-diproses',
-                                                    default => 'badge-selesai',
-                                                };
-                                            @endphp
-
-                                            <span class="badge {{ $statusClass }}">
-                                                {{ $ticket->status }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    @endif
-                </div>
             </section>
 
             <footer>
