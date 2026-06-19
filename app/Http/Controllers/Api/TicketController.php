@@ -9,6 +9,7 @@ use App\Http\Resources\TicketResource;
 use App\Models\Ticket;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TicketController extends Controller
 {
@@ -70,35 +71,41 @@ class TicketController extends Controller
             })
             ->when(
                 $status,
-                fn ($query, string $status) => $query->where(
-                    'status',
-                    $status
-                )
+                fn ($query, string $status) => $query->where('status', $status)
             )
             ->when(
                 $priority,
-                fn ($query, string $priority) => $query->where(
-                    'priority',
-                    $priority
-                )
+                fn ($query, string $priority) => $query->where('priority', $priority)
             )
             ->when(
                 $category,
-                fn ($query, string $category) => $query->where(
-                    'category',
-                    $category
-                )
+                fn ($query, string $category) => $query->where('category', $category)
             )
             ->orderBy($sortBy, $sortDirection)
             ->paginate($perPage)
             ->withQueryString();
 
+        Log::info('Ticket list accessed', [
+            'user_id' => $request->user()?->id,
+            'email' => $request->user()?->email,
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+                'priority' => $priority,
+                'category' => $category,
+                'per_page' => $perPage,
+                'sort_by' => $sortBy,
+                'sort_direction' => $sortDirection,
+            ],
+            'total_result' => $tickets->total(),
+            'ip' => $request->ip(),
+            'time' => now()->toDateTimeString(),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Daftar ticket berhasil diambil.',
-            'data' => TicketResource::collection(
-                $tickets->getCollection()
-            ),
+            'data' => TicketResource::collection($tickets->getCollection()),
             'meta' => [
                 'current_page' => $tickets->currentPage(),
                 'from' => $tickets->firstItem(),
@@ -125,10 +132,20 @@ class TicketController extends Controller
         ]);
     }
 
-    public function store(
-        StoreTicketRequest $request
-    ): JsonResponse {
+    public function store(StoreTicketRequest $request): JsonResponse
+    {
         $ticket = Ticket::create($request->validated());
+
+        Log::info('Ticket created', [
+            'ticket_id' => $ticket->id,
+            'title' => $ticket->title,
+            'status' => $ticket->status,
+            'priority' => $ticket->priority,
+            'created_by_user_id' => $request->user()?->id,
+            'created_by_email' => $request->user()?->email,
+            'ip' => $request->ip(),
+            'time' => now()->toDateTimeString(),
+        ]);
 
         return response()->json([
             'success' => true,
@@ -138,8 +155,16 @@ class TicketController extends Controller
         ], 201);
     }
 
-    public function show(Ticket $ticket): JsonResponse
+    public function show(Request $request, Ticket $ticket): JsonResponse
     {
+        Log::info('Ticket detail accessed', [
+            'ticket_id' => $ticket->id,
+            'user_id' => $request->user()?->id,
+            'email' => $request->user()?->email,
+            'ip' => $request->ip(),
+            'time' => now()->toDateTimeString(),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Detail ticket berhasil diambil.',
@@ -152,8 +177,38 @@ class TicketController extends Controller
         UpdateTicketRequest $request,
         Ticket $ticket
     ): JsonResponse {
+        $before = $ticket->only([
+            'title',
+            'description',
+            'category',
+            'priority',
+            'status',
+            'requester_name',
+            'requester_email',
+        ]);
+
         $ticket->update($request->validated());
         $ticket->refresh();
+
+        $after = $ticket->only([
+            'title',
+            'description',
+            'category',
+            'priority',
+            'status',
+            'requester_name',
+            'requester_email',
+        ]);
+
+        Log::info('Ticket updated', [
+            'ticket_id' => $ticket->id,
+            'before' => $before,
+            'after' => $after,
+            'updated_by_user_id' => $request->user()?->id,
+            'updated_by_email' => $request->user()?->email,
+            'ip' => $request->ip(),
+            'time' => now()->toDateTimeString(),
+        ]);
 
         return response()->json([
             'success' => true,
@@ -163,9 +218,24 @@ class TicketController extends Controller
         ]);
     }
 
-    public function destroy(Ticket $ticket): JsonResponse
+    public function destroy(Request $request, Ticket $ticket): JsonResponse
     {
+        $deletedTicket = [
+            'id' => $ticket->id,
+            'title' => $ticket->title,
+            'status' => $ticket->status,
+            'priority' => $ticket->priority,
+        ];
+
         $ticket->delete();
+
+        Log::warning('Ticket deleted', [
+            'ticket' => $deletedTicket,
+            'deleted_by_user_id' => $request->user()?->id,
+            'deleted_by_email' => $request->user()?->email,
+            'ip' => $request->ip(),
+            'time' => now()->toDateTimeString(),
+        ]);
 
         return response()->json([
             'success' => true,
