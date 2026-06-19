@@ -4,37 +4,44 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use Illuminate\View\View;
+use Throwable;
 
 class DashboardController extends Controller
 {
-    /**
-     * Menampilkan halaman dashboard Divisi IT.
-     */
     public function index(): View
     {
-        $tickets = Ticket::query()
-            ->latest()
-            ->get();
+        try {
+            $stats = [
+                'total' => Ticket::count(),
+                'open' => Ticket::where('status', 'open')->count(),
+                'in_progress' => Ticket::where('status', 'in_progress')->count(),
+                'resolved' => Ticket::where('status', 'resolved')->count(),
+                'urgent' => Ticket::where('priority', 'urgent')->count(),
+            ];
 
-        $statistics = [
-            'total' => $tickets->count(),
+            $tickets = Ticket::latest()
+                ->limit(8)
+                ->get();
 
-            'new' => $tickets
-                ->where('status', 'Baru')
-                ->count(),
-
-            'process' => $tickets
-                ->where('status', 'Diproses')
-                ->count(),
-
-            'completed' => $tickets
-                ->where('status', 'Selesai')
-                ->count(),
-        ];
-
-        return view('dashboard', [
-            'tickets' => $tickets,
-            'statistics' => $statistics,
-        ]);
+            return view('dashboard', [
+                'stats' => $stats,
+                'tickets' => $tickets,
+                'hasError' => false,
+                'errorMessage' => null,
+            ]);
+        } catch (Throwable $exception) {
+            return view('dashboard', [
+                'stats' => [
+                    'total' => 0,
+                    'open' => 0,
+                    'in_progress' => 0,
+                    'resolved' => 0,
+                    'urgent' => 0,
+                ],
+                'tickets' => collect(),
+                'hasError' => true,
+                'errorMessage' => 'Data dashboard gagal dimuat.',
+            ]);
+        }
     }
 }
