@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Throwable;
 
@@ -38,7 +39,7 @@ class DashboardController extends Controller
                     'resolved' => 0,
                     'urgent' => 0,
                 ],
-                'tickets' => collect(),
+                'tickets' => new Collection(),
                 'hasError' => true,
                 'errorMessage' => 'Data dashboard gagal dimuat.',
             ]);
